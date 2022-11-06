@@ -1,0 +1,15 @@
+{
+  "eslint.workingDirectories": [
+    "api",
+    "web",
+    "mobile"
+  ],
+  "cSpell.words": [
+    "dayjs",
+    "fastify",
+    "Fontisto",
+    "headlessui",
+    "Pressable",
+    "roboto"
+  ]
+}
