@@ -6,91 +6,84 @@ Projeto desenvolvido durante a Next Level Week Copa, na trilha Ignite.
 
 ---
 <br />
-**../routes/auth.ts**
 
----
+| ~**src/routes/auth.ts**
 
-- **Get user information**
+- '**/me**' - get user info
+- '**/users**' - get user info from Google and create user info in database.
+
+| ~**src/routes/games.ts**
+
+- '**/polls/:id/games**' - get list games for polls
+
+| ~**src/routes/guess.ts**
+
+- '**/guesses/count**' - get guesses count
+- '**/guesses/pollId/games/:gameId/guesses**' - send guess to poll of game
+
+| ~**src/routes/poll.ts**
+
+- '**/polls/count**' - get poll count
+- '**/polls**' - create poll (POST)
+- '**/polls/join**' - join poll to user id same owner. If owner does not exist, update with first user id as owner..
+- '**/polls**' - list polls (GET)
+- '**/polls/:id**' - list specific poll from id (GET)
+
+| ~**src/routes/user.ts**
+
+- '**/users/count**' - get users count
+
+| ~**/src/server.ts**
+
+This is a security word in jwt token. Need this, for better security for backend jwt token.
 
 ```ts
-fastify.get(
-    "/me",
-    {
-      onRequest: [authenticate],
-    },
-    async (request) => {
-      return { user: request.user };
-    }
-  );
+await fastify.register(jwt, {
+  secret: 'nlwcopa',
+  })
 ```
 
-### METHOD POST
-
----
-
-- **Get user token and public information from Google API oauth2**
+This is the set port to application usage by fastify.
 
 ```ts
-fastify.post("/users", async (request) => {
-    const createUserBody = z.object({
-      access_token: z.string(),
-    });
+await fastify.listen({ port: 3333, host: '0.0.0.0' })
 
-    const { access_token } = createUserBody.parse(request.body);
+```
 
-    const userResponse = await fetch(
-      "https://www.googleapis.com/oauth2/v2/userinfo",
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
-      }
-    );
+_Notes_: add host: to work with mobile application
 
-    const userData = await userResponse.json();
+| ~**/src/@types/fastify-jwt.d.ts**
+This is a custom types for fastify JWT.
 
-    const userInfoSchema = z.object({
-      id: z.string(),
-      email: z.string().email(),
-      name: z.string(),
-      picture: z.string().url(),
-    });
+```ts
+import '@fastify/jwt'
 
-    const userInfo = userInfoSchema.parse(userData);
-
-    let user = await prisma.user.findUnique({
-      where: {
-        googleId: userInfo.id,
-      },
-    });
-
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          googleId: userInfo.id,
-          name: userInfo.name,
-          email: userInfo.email,
-          avatarUrl: userInfo.picture,
-        },
-      });
+declare module '@fastify/jwt' {
+  interface FastifyJWT {
+    user: {
+      sub: string;
+      name: string;
+      avatarUrl?: string;
     }
-
-    const token = fastify.jwt.sign(
-      {
-        name: user.name,
-        avatarUrl: user.avatarUrl,
-      },
-      {
-        sub: user.id,
-        expiresIn: "7 days",
-      }
-    );
-
-    return { token };
   }
+}
 ```
 
-## Libs usage
+## Used libs
 
+- [prisma](https://www.npmjs.com/package/prisma) | Prisma is a next-generation ORM that consists tools.
 - [zod](https://www.npmjs.com/package/zod) | TypeScript-first schema validation with static type inference
+- [fastify](https://www.npmjs.com/package/fastify) | An efficient server implies a lower cost of the infrastructure, a better responsiveness under load and happy users.
+- [short-uniq-id](https://www.npmjs.com/package/short-unique-id) | The ability to set a custom dictionary and length means that Short Unique ID.
+
+- [@mermaid-js/mermaid-cli](https://www.npmjs.com/package/@mermaid-js/mermaid-cli) - This is a command-line interface (CLI) for mermaid. It takes a mermaid definition file as input and generates an svg/png/pdf file as output.
+
+- [prisma-erd-generator](https://www.npmjs.com/package/prisma-erd-generator) - Prisma generator to create an ER Diagram every time you generate your prisma client.
+
+- [tsx](https://www.npmjs.com/package/tsx) - Is a CLI command (alternative to node) for seamlessly running TypeScript & ESM, in both commonjs & module package types.
+
+- [@fastify/cors](https://www.npmjs.com/package/@fastify/cors) - Enables the use of CORS in a Fastify application.
+
+- [@fastify/jwt](https://www.npmjs.com/package/@fastify/jwt) - JWT utils for Fastify, internally it uses fast-jwt.
+
+Made with 💛 by Andrelino Silva

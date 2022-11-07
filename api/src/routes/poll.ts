@@ -158,7 +158,7 @@ export async function pollRoutes(fastify: FastifyInstance) {
     {
       onRequest: [authenticate],
     },
-    async (request) => {
+    async (request, reply) => {
       const getPollParams = z.object({
         id: z.string(),
       });
@@ -195,6 +195,12 @@ export async function pollRoutes(fastify: FastifyInstance) {
           },
         },
       });
+
+      if (!poll) {
+        return reply.status(400).send({
+          message: "Pool not found",
+        });
+      }
 
       return { poll };
     }
